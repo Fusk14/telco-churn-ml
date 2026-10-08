@@ -1,0 +1,17 @@
+{
+    "model": "random_forest",
+    "optimization_metric": "F1-score",
+    "positive_class": "Churn = Yes (1)",
+    "cv_folds": 5,
+    "n_trials": 30,
+    "best_cv_f1": 0.634238862279926,
+    "best_cv_f1_std": 0.018665500052027474,
+    "best_params": {
+        "n_estimators": 100,
+        "max_depth": null,
+        "min_samples_split": 18,
+        "min_samples_leaf": 10,
+        "max_features": "log2",
+        "class_weight": "balanced_subsample"
+    }
+}

@@ -1,0 +1,3 @@
+modelo,mejor_f1_cv,desviacion_f1_cv,pipeline_guardado
+random_forest,0.634238862279926,0.018665500052027474,C:\Users\fusk5\Desktop\telco-churn-ml\models\random_forest_optuna.joblib
+logistic_regression,0.6297633280228062,0.023349045102651216,C:\Users\fusk5\Desktop\telco-churn-ml\models\logistic_regression_optuna.joblib

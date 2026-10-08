@@ -1,0 +1,13 @@
+{
+    "model": "logistic_regression",
+    "optimization_metric": "F1-score",
+    "positive_class": "Churn = Yes (1)",
+    "cv_folds": 5,
+    "n_trials": 30,
+    "best_cv_f1": 0.6297633280228062,
+    "best_cv_f1_std": 0.023349045102651216,
+    "best_params": {
+        "C": 6.340249693412648,
+        "class_weight": "balanced"
+    }
+}
