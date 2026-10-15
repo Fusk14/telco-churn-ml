@@ -61,9 +61,7 @@ Abre una terminal en la raíz del proyecto y crea un entorno virtual:
 py -m venv .venv
 .\.venv\Scripts\python.exe -m pip install --upgrade pip
 .\.venv\Scripts\python.exe -m pip install -r requirements.txt
-```
-
-Si todavía no tienes `requirements.txt`, crea uno con las dependencias utilizadas por el proyecto antes de ejecutar el flujo. No instales paquetes en otro Python distinto del entorno `.venv`.
+.\.venv\Scripts\python.exe -m ipykernel install --user --name=telco-venv --display-name "Python (telco-venv)"
 
 ## Ejecución reproducible
 

@@ -87,6 +87,7 @@ def execute_notebook(relative_path: str) -> None:
             "notebook",
             "--execute",
             "--inplace",
+            "--ExecutePreprocessor.kernel_name=telco-venv",  # <--- Usar el nombre del kernel
             f"--ExecutePreprocessor.cwd={ROOT / 'notebooks'}",
             str(notebook_path),
         ],
