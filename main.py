@@ -62,15 +62,10 @@ def check_required_files() -> None:
             "Comprueba los nombres y la estructura de carpetas."
         )
 
-    clustering_notebook = ROOT / "notebooks" / "04_Modelo_No_Supervisado.ipynb"
-    alternate_clustering_notebook = ROOT / "notebooks" / "03_Modelo_No_Supervisado.ipynb"
-    if not clustering_notebook.exists() and alternate_clustering_notebook.exists():
-        FINAL_NOTEBOOKS[-1] = "notebooks/03_Modelo_No_Supervisado.ipynb"
-    elif not clustering_notebook.exists():
+    clustering_notebook = ROOT / FINAL_NOTEBOOKS[-1]
+    if not clustering_notebook.is_file():
         raise FileNotFoundError(
-            "No se encontró el notebook de clustering. Se esperaba "
-            "'notebooks/04_Modelo_No_Supervisado.ipynb' o "
-            "'notebooks/03_Modelo_No_Supervisado.ipynb'."
+            f"No se encontró el notebook de clustering: {clustering_notebook}"
         )
 
 
@@ -87,8 +82,8 @@ def execute_notebook(relative_path: str) -> None:
             "notebook",
             "--execute",
             "--inplace",
-            "--ExecutePreprocessor.kernel_name=telco-venv",  # <--- Usar el nombre del kernel
-            f"--ExecutePreprocessor.cwd={ROOT / 'notebooks'}",
+            "--ExecutePreprocessor.kernel_name=python3",
+            f"--ExecutePreprocessor.extra_arguments=[]",
             str(notebook_path),
         ],
         f"Ejecutando notebook: {relative_path}",
@@ -108,6 +103,7 @@ def main() -> int:
     print("TELCO CUSTOMER CHURN — EJECUCIÓN REPRODUCIBLE")
     print(f"Raíz del proyecto: {ROOT}")
     print(f"Intérprete Python: {sys.executable}")
+    print("Kernel de notebooks: python3 (registrado en este entorno)")
 
     try:
         check_required_files()
