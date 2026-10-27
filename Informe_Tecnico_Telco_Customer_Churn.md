@@ -36,6 +36,8 @@ segmentos y no son predicciones individuales ni evidencia causal.
 La pérdida de clientes puede reducir ingresos y aumentar los costos de
 adquisición. La empresa necesita comprender patrones asociados al
 abandono para orientar mejor las acciones de retención.
+Estos datos que manejaremos son datos sinteticos extraidos de una empresa ficticia llamada telco-customer,
+el conjunto de datos viene de proviniente de la empresa de tecnologia IBM ubicada en estados unidos.
 
 **Objetivo general:** desarrollar y evaluar una solución reproducible de
 Machine Learning para clasificar el abandono de clientes y explorar

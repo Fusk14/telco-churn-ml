@@ -1,6 +1,7 @@
 # Telco Customer Churn — Machine Learning
 
-Proyecto académico de Machine Learning para analizar y predecir el abandono de clientes (`Churn`) y explorar segmentos mediante K-Means y análisis de componentes principales (PCA).
+Proyecto académico de Machine Learning para analizar y predecir el abandono de clientes (`Churn`) y explorar segmentos mediante K-Means y análisis de componentes principales (PCA). Estos datos que manejaremos son datos sinteticos extraidos de una empresa ficticia llamada telco-customer,
+el conjunto de datos viene de proviniente de la empresa de tecnologia IBM ubicada en estados unidos.
 
 > **Documentación técnica:** consulta [`Informe_Tecnico_Telco_Customer_Churn.md`](Informe_Tecnico_Telco_Customer_Churn.md) para la explicación completa de la metodología, las decisiones técnicas, los resultados y las limitaciones.
 
