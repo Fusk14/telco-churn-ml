@@ -142,6 +142,12 @@ Entre las asociaciones categóricas más relevantes reportadas por el análisis 
 
 Para las variables numéricas se eligió **Spearman** por la asimetría observada. Se incluyó una codificación auxiliar de `Churn` (`No=0`, `Yes=1`) exclusivamente para el análisis de asociación, sin modificar los datos originales. Los coeficientes reportados con `Churn` fueron aproximadamente `tenure=-0,360`, `MonthlyCharges=0,190` y `TotalCharges=-0,224`. La correlación `tenure`–`TotalCharges` fue aproximadamente `0,891`. Son relaciones descriptivas; una correlación no demuestra que una variable cause el abandono.
 
+### Comparación numérica por Churn: boxplots y evidencia exploratoria
+
+Como complemento a histogramas, tasas de abandono y correlaciones, se incorporó en `notebooks/01_EDA.ipynb` una figura con **tres boxplots** (`tenure`, `MonthlyCharges` y `TotalCharges`) separados por `Churn = No/Yes`. Los boxplots permiten contrastar medianas, dispersión y valores extremos; su elaboración utiliza únicamente una representación numérica auxiliar de `TotalCharges` y **no modifica ni imputa el conjunto original**.
+
+El patrón destacado es la menor antigüedad de los clientes que abandonan: en el análisis descrito, la mediana de `tenure` es aproximadamente **10 meses** para `Churn = Yes` y **38 meses** para `Churn = No`. Los cargos mensuales también muestran diferencias descriptivas entre grupos. Estas observaciones justifican mantener dichas variables como *candidatas predictivas*, pero un boxplot **no prueba significancia estadística, causalidad ni contribución independiente al clasificador**. La relación `tenure`–`TotalCharges` también obliga a considerar información redundante.
+
 ### Decisiones que el EDA fundamenta, sin ejecutarlas
 
 El EDA no imputa, escala ni codifica el conjunto de entrenamiento. Detecta y documenta los problemas y patrones que motivan las operaciones posteriores: espacios en textos, `TotalCharges` almacenado como texto, vacíos vinculados a `tenure=0`, distribuciones asimétricas, variables binarias y categóricas, y desbalance del objetivo. La ejecución real de esas operaciones corresponde a los scripts de preprocesamiento y optimización.
@@ -235,7 +241,7 @@ como `models/logistic_regression_optuna.joblib` y
   Precision                  0,5060          0,5394
   Recall                     0,7834          0,7861
   F1-score                   0,6149          0,6398
-  ROC-AUC                    0,8432          0,8412
+  ROC-AUC                    0,8412          0,8432
 
 Se usó el umbral predeterminado de `predict`; las probabilidades se
 utilizaron para ROC-AUC.
@@ -244,10 +250,7 @@ Random Forest tuvo mejor Accuracy, Precision, Recall y F1-score. Su
 Recall de 78,61% indica que identificó cerca de cuatro quintos de los
 clientes que realmente abandonaron en Test. Su Precision de 53,94%
 significa que aproximadamente la mitad de los clientes marcados como
-posibles desertores efectivamente abandonó. La Regresión Logística tuvo
-un ROC-AUC apenas mayor (0,8432 frente a 0,8412), por lo que su
-capacidad global de discriminación a través de umbrales fue ligeramente
-superior, aunque la diferencia es pequeña.
+posibles desertores efectivamente abandonó.
 
 ### 6.4 Matrices de confusión
 
@@ -271,6 +274,31 @@ ROC evalúa la relación entre la tasa de verdaderos positivos y la tasa
 de falsos positivos para distintos umbrales. No determina por sí sola el
 umbral óptimo: para producción se debe estimar el costo de errores y
 campañas de retención.
+
+### 6.6 Interpretabilidad: importancia por permutación de las 19 variables originales
+
+Se añadió al notebook `02_Modelos_Supervisados.ipynb` una comparación de **importancia por permutación** para los pipelines ya entrenados de Regresión Logística y Random Forest. En lugar de estimar relevancia por separado para cada columna resultante del One-Hot Encoding, se altera una **variable original completa** y se mide cuánto disminuye el **F1-score**. Esto permite interpretar los predictores en términos comerciales sin modificar el entrenamiento de Optuna ni los modelos serializados.
+
+El gráfico generado sobre **Train**, con cinco repeticiones de permutación y semilla 42, mostró el siguiente orden de variables destacadas; los valores son aproximaciones visuales del gráfico, no mediciones independientes:
+
+| Modelo | Variables de mayor importancia observada | Interpretación |
+|---|---|---|
+| Regresión Logística | `tenure` (~0,164), `InternetService` (~0,130), `MonthlyCharges` (~0,082), `Contract` (~0,036) | La permanencia, el servicio de internet y el cargo mensual condicionan notablemente el F1 del modelo sobre Train. |
+| Random Forest | `Contract` (~0,080), `InternetService` (~0,053), `tenure` (~0,038), `TotalCharges` (~0,034) | El contrato es la característica con mayor descenso de F1 al permutarse, seguido del servicio de internet y variables de permanencia/facturación. |
+
+**Conexión con el EDA.** La importancia de `Contract`, `InternetService` y `tenure` resulta coherente con sus asociaciones y distribuciones exploratorias. El orden distinto en cada algoritmo demuestra que **asociación bivariada e importancia dentro del modelo no son lo mismo**. Por ejemplo, `Contract` presenta una asociación fuerte en el EDA y destaca especialmente en Random Forest, pero no encabeza el resultado de Regresión Logística.
+
+**Alcance metodológico.** Los valores se calcularon sobre los mismos registros Train usados para ajustar los pipelines. Por tanto, son una **interpretación descriptiva potencialmente optimista**, no validación independiente de generalización; la permutación de variables correlacionadas puede subestimar su contribución individual. La importancia por permutación **no entrega valores p, intervalos de confianza inferenciales ni prueba de efecto causal**. También es sensible a la métrica elegida (`F1`), a la configuración del modelo y a la distribución de los datos.
+
+**Decisión adoptada:** se conservan las **19 variables originales** y los modelos optimizados. No se ha realizado un procedimiento de selección de características ni puede afirmarse que las 19 sean estadísticamente significativas. Una posible mejora futura sería comparar, con **selección realizada dentro de cada fold de validación cruzada en Train**, un modelo reducido frente al modelo completo. No corresponde utilizar Test para decidir qué variables conservar.
+
+### 6.7 Tres conceptos que no deben confundirse
+
+- **Asociación exploratoria:** describe patrones entre una característica y `Churn` (boxplots, Spearman, V de Cramér); puede reflejar correlaciones entre predictores.
+- **Importancia predictiva:** mide la dependencia de un modelo concreto respecto de una característica para una métrica definida (aquí, caída de F1 al permutarla en Train).
+- **Significancia estadística:** se refiere a una inferencia formal bajo hipótesis y supuestos establecidos; ni los boxplots ni este gráfico de permutación prueban por sí solos significancia.
+
+Del mismo modo, ninguna de las tres demuestra que modificar una característica provoque una reducción del abandono. Para afirmar causalidad harían falta diseños y datos adicionales, como experimentos controlados sobre intervenciones de retención.
 
 ## 7. Modelo no supervisado: K-Means
 
@@ -389,7 +417,8 @@ El PCA no utiliza `Churn` para construir componentes ni para formar clusters. `C
     F1-score con el umbral predeterminado; Regresión Logística logró un
     ROC-AUC marginalmente superior.
 5.  K-Means con dos clusters encontró perfiles descriptivamente diferentes. Con 16 componentes PCA (aprox. 92 % de varianza), el Silhouette para `k=2` aumentó de 0,2492 a 0,2715 (+8,96 % relativo), aunque ambos valores reflejan separación limitada. La visualización con dos componentes no equivale al entrenamiento con 16.
-6.  Los modelos supervisados estiman la clase de abandono; K-Means
+6.  La importancia por permutación confirma que el orden de contribución de variables depende del algoritmo: destacan `tenure` e `InternetService` en Regresión Logística y `Contract` e `InternetService` en Random Forest. Los hallazgos son descriptivos sobre Train y no justifican eliminar variables sin validación cruzada.
+7.  Los modelos supervisados estiman la clase de abandono; K-Means
     agrupa clientes por similitud. Cumplen objetivos distintos y sus
     resultados son complementarios.
 
@@ -414,9 +443,7 @@ El PCA no utiliza `Churn` para construir componentes ni para formar clusters. `C
 -   **Sesgo y trato justo:** las diferencias entre grupos no deben
     producir automáticamente trato desfavorable. Revisar resultados por
     subgrupos y mantener supervisión humana.
--   **Explicabilidad:** las métricas globales no explican por qué se
-    clasifica a un cliente específico; conviene incorporar herramientas
-    explicativas antes del uso operativo.
+-   **Explicabilidad:** se incorporó importancia global por permutación en Train, pero no es explicación causal ni individual y puede ser optimista. Para uso operativo todavía serían necesarias explicaciones locales, verificación de estabilidad y revisión humana.
 -   **Calidad de datos:** reemplazar `TotalCharges` vacío por cero
     depende de que los registros correspondan a clientes con `tenure=0`;
     validar esta regla con el sistema de origen.
@@ -512,14 +539,26 @@ principales del EDA. 2. Calidad de datos y tratamiento de
 `TotalCharges`. 3. Hiperparámetros de Optuna y F1 promedio CV. 4. Tabla
 de métricas de Test. 5. Matrices de confusión y curva ROC. 6. Método del
 codo y Silhouette. 7. Perfiles de los clusters y tasa de abandono por
-cluster. 8. Curva de varianza acumulada PCA, proyección bidimensional y comparación K-Means original frente a K-Means con PCA.
+cluster. 8. Curva de varianza acumulada PCA, proyección bidimensional y comparación K-Means original frente a K-Means con PCA. 9. Boxplots comparativos por Churn e importancia por permutación de ambos modelos.
 
 Las evidencias deben provenir de las ejecuciones reales de los
 notebooks.
 
 
-## 13. Alcance de la verificación y próximos pasos
+## 13. Alcance de la verificación, preparación de la exposición y próximos pasos
 
 Los resultados supervisados en Test y los perfiles del K-Means original provienen del informe anterior; la ejecución más reciente del orquestador confirmó la finalización de sus etapas. Además, el CSV de comparación PCA fue aportado y permite verificar los Silhouette para `k=2..8` documentados en la sección 7.5. La consola no imprime las métricas finales de Test; para contrastarlas con la ejecución actual, consultar `reports/supervised_test_results.csv`. Para validar los perfiles de los clusters originales y sus tasas de Churn, consultar `reports/clustering/train_customer_segments.csv` y `reports/clustering/clustering_churn_distribution.csv`.
 
 Antes de uso productivo sería necesario validar el desempeño fuera de esta partición, la estabilidad temporal de los clusters, la rentabilidad de campañas de retención, la equidad entre grupos y el manejo seguro de los datos. El proyecto es un análisis académico reproducible, no un sistema de decisión desplegado.
+
+
+### Puntos clave para la defensa académica
+
+1. **Variables de entrada:** 21 columnas originales; 19 predictores, un identificador (`customerID`) y un objetivo (`Churn`). El codificador genera 45 columnas procesadas en el preprocesador de exportación; no se realizó selección automática de variables.
+2. **EDA → modelado:** las distribuciones y asociaciones justifican estudiar variables como antigüedad, contrato y servicio de internet. Se conservan todas inicialmente para evaluar modelos con la información disponible.
+3. **Evidencia predictiva:** la importancia por permutación diferencia las dependencias de Regresión Logística y Random Forest, sin atribuir causalidad ni significancia formal.
+4. **Comparación de modelos:** Random Forest obtuvo F1 de **0,6398 en Test** y Regresión Logística ROC-AUC de **0,8432**. Los F1 de la optimización (**0,6342** y **0,6298**) son promedios de **validación cruzada en Train** y no deben confundirse con Test.
+5. **PCA y segmentación:** se seleccionaron **16 componentes** por aproximadamente **92 % de varianza acumulada**; dos componentes sirven solo para visualización 2D. Silhouette de K-Means aumentó de **0,2492** a **0,2715** con PCA a `k=2`, aunque la separación continúa limitada.
+6. **Reproducibilidad y prudencia:** `main.py` finalizó todas las etapas en la última ejecución compartida. Los resultados no constituyen una evaluación de impacto causal ni garantizan generalización fuera de la población analizada.
+
+**Control documental previo a presentar:** guardar las celdas nuevas del EDA y del notebook supervisado con sus gráficos y texto; revisar que el README remita a este informe; confirmar que los valores y títulos de las gráficas coinciden con las tablas y que la última ejecución no dejó celdas con error. No es necesario volver a ejecutar Optuna ni modificar los modelos para exponer los nuevos análisis descriptivos.

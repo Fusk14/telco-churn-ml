@@ -106,9 +106,9 @@ La evaluación sobre Test reportó los siguientes resultados:
 | Precision | 0,5060 | 0,5394 |
 | Recall | 0,7834 | 0,7861 |
 | F1-score | 0,6149 | 0,6398 |
-| ROC-AUC | 0,8432 | 0,8412 |
+| ROC-AUC | 0,8412 | 0,8432 |
 
-Random Forest obtuvo mejores Accuracy, Precision, Recall y F1-score con el umbral predeterminado; Regresión Logística obtuvo un ROC-AUC ligeramente superior. La selección final debe considerar el costo de falsos positivos y falsos negativos, no una sola métrica.
+Random Forest obtuvo mejores Accuracy, Precision, Recall y F1-score con el umbral predeterminado; Regresión Logística obtuvo un ROC-AUC ligeramente inferior que random forest. La selección final debe considerar el costo de falsos positivos y falsos negativos, no una sola métrica.
 
 En clustering, la solución original de K-Means seleccionó `k=2`, con Silhouette de 0,2492. El PCA seleccionó 16 componentes para conservar aproximadamente 92 % de la varianza de las 45 características procesadas. Las dos primeras componentes conservan aproximadamente 40,32 % y se utilizan para visualización 2D. La comparación experimental confirmó que **K-Means con PCA y `k=2` alcanzó Silhouette 0,2715**, frente a **0,2492** en el espacio original (mejora relativa aproximada de **8,96 %**). Ambos valores reflejan separación limitada. Los resultados para `k=2..8`, la interpretación y las limitaciones se documentan en el [informe técnico](Informe_Tecnico_Telco_Customer_Churn.md) y en `reports/clustering/clustering_pca_comparison.csv`.
 
